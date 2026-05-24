@@ -10,7 +10,7 @@ def __list_all_modules():
     # This generates a list of modules in this
     # folder for the * in __main__ to work.
     mod_paths = glob.glob(dirname(__file__) + "/*.py")
-    # Userbot-specific modules to exclude (bot-only mode)
+    # Userbot-specific and fun/social modules to exclude (bot-only mode)
     userbot_modules = [
         "userbot",
         "pmpermit",
@@ -35,6 +35,8 @@ def __list_all_modules():
         "tts",
         "carbon",
         "arq",
+        "autocorrect",
+        "mongo_backup",
     ]
     all_modules = [
         basename(f)[:-3]

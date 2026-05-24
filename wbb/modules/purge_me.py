@@ -13,12 +13,6 @@ TEXT = """
 
 <code>purgeme [Number of messages to purge]</code>  →  Purge your own messages.<br>
 
-<code>eval [Lines of code]</code>  →  Execute Python Code.<br>
-
-<code>lsTasks</code>  →  List running tasks (eval)<br>
-
-<code>sh [Some shell code]</code>  →  Execute Shell Code.<br>
-
 <code>approve</code>  →  Approve a user to PM you.<br>
 
 <code>disapprove</code>  →  Disapprove a user to PM you.<br>
