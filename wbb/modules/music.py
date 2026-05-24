@@ -32,7 +32,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Union
 
 # Bot imports
-from wbb import app, arq, SUDOERS, db
+from wbb import app, SUDOERS, db
 from pyrogram import filters
 from pyrogram.types import InlineQuery, InlineQueryResultAudio, Message
 from yt_dlp import YoutubeDL
@@ -904,34 +904,8 @@ async def song_handler(_, m: Message):
 
 @app.on_message(filters.command("lyrics"))
 async def lyrics_handler(_, m: Message):
-    """Handle /lyrics command."""
-    if len(m.command) < 2:
-        return await m.reply_text("🎵 Usage: `/lyrics <song name>`")
-
-    query = m.text.split(None, 1)[1].strip()
-    msg = await m.reply_text("🔍 Searching lyrics...")
-
-    try:
-        if arq is None:
-            return await msg.edit("❌ Lyrics service unavailable.")
-
-        resp = await arq.lyrics(query)
-        if not (resp.ok and resp.result):
-            return await msg.edit("❌ No lyrics found.")
-
-        song = resp.result[0]
-        text = f"**{song['song']}** | **{song['artist']}**\n\n{song['lyrics']}"
-        if len(text) > 4096:
-            text = text[:4090] + "..."
-
-        await msg.edit(text)
-        try:
-            await m.delete()
-        except Exception:
-            pass
-    except Exception as e:
-        await msg.edit(f"❌ Error: {str(e)[:200]}")
-        print(f"[ERROR] /lyrics: {e}")
+    """Handle /lyrics command - disabled due to ARQ removal."""
+    await m.reply_text("❌ Lyrics feature disabled - ARQ API removed")
 
 
 @app.on_message(filters.command("video") & (filters.group | filters.private))
@@ -1152,11 +1126,6 @@ def _handle_sigint():
 
 async def cleanup():
     try:
-        if 'arq' in globals() and arq is not None:
-            if hasattr(arq, 'close'):
-                await arq.close()
-            elif hasattr(arq, 'session') and hasattr(arq.session, 'close'):
-                await arq.session.close()
         if TEMP_DIR.exists():
             for d in TEMP_DIR.iterdir():
                 if d.is_dir():

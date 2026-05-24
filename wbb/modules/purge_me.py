@@ -9,8 +9,6 @@ TEXT = """
 
 <code>create (b|s|c) Title</code>  →  create [basic|super]group & channel<br>
 
-<code>chatbot [ENABLE|DISABLE]</code>  →  Enable chatbot in a chat.<br>
-
 <code>autocorrect [ENABLE|DISABLE]</code>  →  This will autocorrect your messages on the go.<br>
 
 <code>purgeme [Number of messages to purge]</code>  →  Purge your own messages.<br>

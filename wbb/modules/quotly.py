@@ -4,7 +4,7 @@ from traceback import format_exc
 from pyrogram import filters
 from pyrogram.types import Message
 
-from wbb import SUDOERS, USERBOT_PREFIX, app, app2, arq
+from wbb import SUDOERS, app
 from wbb.core.decorators.errors import capture_err
 
 __MODULE__ = "Quotly"
@@ -12,19 +12,12 @@ __HELP__ = """
 /q - To quote a message.
 /q [INTEGER] - To quote more than 1 messages.
 /q r - to quote a message with it's reply
-
-Use .q to quote using userbot
 """
 
 
 async def quotify(messages: list):
-    response = await arq.quotly(messages)
-    if not response.ok:
-        return [False, response.result]
-    sticker = response.result
-    sticker = BytesIO(sticker)
-    sticker.name = "sticker.webp"
-    return [True, sticker]
+    # ARQ removed - quotly feature disabled
+    return [False, "Quotly service unavailable - ARQ API removed"]
 
 
 def getArg(message: Message) -> str:
@@ -41,12 +34,6 @@ def isArgInt(message: Message) -> list:
         return [False, 0]
 
 
-@app2.on_message(
-    filters.command("q", prefixes=USERBOT_PREFIX)
-    & ~filters.forwarded
-    & ~filters.via_bot
-    & SUDOERS
-)
 @app.on_message(filters.command("q") & ~filters.private)
 @capture_err
 async def quotly_func(client, message: Message):

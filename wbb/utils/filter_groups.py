@@ -22,10 +22,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 chat_filters_group = 1
-chatbot_group = 2
-karma_positive_group = 3
-karma_negative_group = 4
-regex_group = 5
+karma_positive_group = 2
+karma_negative_group = 3
+regex_group = 4
 welcome_captcha_group = 6
 antiflood_group = 7
 blacklist_filters_group = 8
