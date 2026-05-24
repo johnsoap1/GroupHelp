@@ -11,8 +11,8 @@ def __list_all_modules():
     # folder for the * in __main__ to work.
     mod_paths = glob.glob(dirname(__file__) + "/*.py")
     # Userbot-specific and fun/social modules to exclude (bot-only mode)
+    # Most modules have been deleted, keeping only references to non-existent modules
     userbot_modules = [
-        "userbot",
         "pmpermit",
         "sudo",
         "webss",
@@ -21,21 +21,6 @@ def __list_all_modules():
         "purge_me",
         "taglogger",
         "notes",
-        "chatbot",
-        "pipes",
-        "anonymize",
-        "create",
-        "parse_preview",
-        "download_upload",
-        "dice",
-        "global_stats",
-        "paste",
-        "alive",
-        "couple",
-        "tts",
-        "carbon",
-        "arq",
-        "autocorrect",
         "mongo_backup",
     ]
     all_modules = [
