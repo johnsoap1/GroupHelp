@@ -36,12 +36,13 @@ from pyrogram.types import (
     Message,
 )
 
-from wbb import app, SUDOERS_SET
-from wbb.core.sql import (
-    add_filter       as sql_add_filter,
-    remove_filter    as sql_remove_filter,
-    remove_all_filters as sql_remove_all_filters,
-    get_chat_filters as sql_get_chat_filters,
+from wbb import app, SUDOERS_SET, db
+from wbb.utils.dbfunctions import (
+    save_filter,
+    delete_filter,
+    deleteall_filters,
+    get_filter,
+    get_filters_names,
 )
 
 # ==================== MODULE INFO ====================
@@ -191,14 +192,17 @@ async def _add_filter(
     use_regex: bool = False,
 ) -> None:
     try:
-        await sql_add_filter(
-            chat_id, keyword, response,
-            is_global=is_global,
-            is_media=is_media,
-            file_id=file_id,
-            file_type=file_type,
-            use_regex=use_regex,
-        )
+        filter_data = {
+            "response": response,
+            "is_global": is_global,
+            "is_media": is_media,
+            "use_regex": use_regex,
+        }
+        if file_id:
+            filter_data["file_id"] = file_id
+        if file_type:
+            filter_data["file_type"] = file_type
+        await save_filter(chat_id, keyword, filter_data)
         _invalidate(chat_id)
         log.info(f"Filter saved: '{keyword}' (chat={chat_id}, global={is_global})")
     except Exception:
@@ -208,7 +212,7 @@ async def _add_filter(
 
 async def _remove_filter(chat_id: int, keyword: str, is_global: bool = False) -> bool:
     try:
-        deleted = await sql_remove_filter(chat_id, keyword, is_global=is_global)
+        deleted = await delete_filter(chat_id, keyword)
         if deleted:
             _invalidate(chat_id)
         return deleted
@@ -219,9 +223,9 @@ async def _remove_filter(chat_id: int, keyword: str, is_global: bool = False) ->
 
 async def _remove_all_filters(chat_id: int) -> int:
     try:
-        count = await sql_remove_all_filters(chat_id)
+        await deleteall_filters(chat_id)
         _invalidate(chat_id)
-        return count
+        return 1
     except Exception:
         log.error(f"Failed to remove all filters in chat {chat_id}", exc_info=True)
         return 0
@@ -232,7 +236,12 @@ async def _get_filters(chat_id: int, include_global: bool = True) -> List[Dict]:
     if cache_key in _filter_cache:
         return _filter_cache[cache_key]
     try:
-        result = await sql_get_chat_filters(chat_id, include_global=include_global)
+        filter_names = await get_filters_names(chat_id)
+        result = []
+        for name in filter_names:
+            filter_data = await get_filter(chat_id, name)
+            if filter_data:
+                result.append({"keyword": name, **filter_data})
         _filter_cache[cache_key] = result
         return result
     except Exception:

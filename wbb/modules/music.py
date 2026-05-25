@@ -35,7 +35,12 @@ from typing import Dict, List, Optional, Tuple, Union
 from wbb import app, SUDOERS, db
 from pyrogram import filters
 from pyrogram.types import InlineQuery, InlineQueryResultAudio, Message
-from yt_dlp import YoutubeDL
+
+try:
+    from yt_dlp import YoutubeDL
+    YTDLP_AVAILABLE = True
+except ImportError:
+    YTDLP_AVAILABLE = False
 
 # ==================== MODULE INFO ====================
 

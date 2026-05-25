@@ -8,7 +8,7 @@ from pyrogram.types import (
     InlineKeyboardMarkup,
 )
 
-from wbb import SUDOERS, USERBOT_ID, app, eor
+from wbb import SUDOERS, app, eor
 from wbb.core.decorators.errors import capture_err
 from wbb.core.decorators.permissions import adminsOnly
 from wbb.core.keyboard import ikb

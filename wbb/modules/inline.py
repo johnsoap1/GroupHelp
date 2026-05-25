@@ -3,7 +3,13 @@ import traceback
 from pyrogram import filters
 
 from wbb import BOT_USERNAME, app
-from wbb.utils.inlinefuncs import *
+
+try:
+    from wbb.utils.inlinefuncs import *
+    INLINE_FUNCS_AVAILABLE = True
+except ImportError:
+    INLINE_FUNCS_AVAILABLE = False
+    keywords_list = []
 
 __MODULE__ = "Inline"
 __HELP__ = f"""

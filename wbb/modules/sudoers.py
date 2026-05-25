@@ -68,7 +68,7 @@ DISK: {disk}%
 # Gban
 
 
-@app.on_message(filters.command("gban") & SUDOERS)
+@app.on_message(filters.command("gban") & filters.user(SUDOERS))
 @capture_err
 async def ban_globally(_, message):
     user_id, reason = await extract_user_and_reason(message)
@@ -139,7 +139,7 @@ __**New Global Ban**__
 # Ungban
 
 
-@app.on_message(filters.command("ungban") & SUDOERS)
+@app.on_message(filters.command("ungban") & filters.user(SUDOERS))
 @capture_err
 async def unban_globally(_, message):
     user_id = await extract_user(message)
@@ -158,7 +158,7 @@ async def unban_globally(_, message):
 # Broadcast
 
 
-@app.on_message(filters.command("broadcast") & SUDOERS)
+@app.on_message(filters.command("broadcast") & filters.user(SUDOERS))
 @capture_err
 async def broadcast_message(_, message):
     sleep_time = 0.1
@@ -191,7 +191,7 @@ async def broadcast_message(_, message):
 # Update and restart commands removed for security
 
 
-@app.on_message(filters.command("ubroadcast") & SUDOERS)
+@app.on_message(filters.command("ubroadcast") & filters.user(SUDOERS))
 @capture_err
 async def broadcast_message(_, message):
     sleep_time = 0.1
