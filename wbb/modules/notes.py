@@ -7,7 +7,7 @@ from pyrogram.types import (
     InlineKeyboardMarkup,
 )
 
-from wbb import SUDOERS, USERBOT_ID, USERBOT_PREFIX, app, app2, eor
+from wbb import SUDOERS, USERBOT_ID, app, eor
 from wbb.core.decorators.errors import capture_err
 from wbb.core.decorators.permissions import adminsOnly
 from wbb.core.keyboard import ikb
@@ -59,7 +59,6 @@ def extract_urls(reply_markup):
     return urls
 
 
-@app2.on_message(filters.command("save", prefixes=USERBOT_PREFIX) & SUDOERS & ~filters.via_bot)
 @app.on_message(filters.command("save") & ~filters.private)
 @adminsOnly("can_change_info")
 async def save_notee(_, message):
@@ -123,7 +122,7 @@ async def save_notee(_, message):
                 "data": data,
                 "file_id": file_id,
             }
-            chat_id = USERBOT_ID if message.text.startswith(USERBOT_PREFIX) else message.chat.id
+            chat_id = message.chat.id
             await save_note(chat_id, name, note)
             await eor(message, text=f"__**Saved note {name}.**__")
     except UnboundLocalError:
@@ -132,51 +131,22 @@ async def save_notee(_, message):
         )
 
 
-@app2.on_message(
-    filters.command("notes", prefixes=USERBOT_PREFIX)
-    & ~filters.forwarded
-    & ~filters.via_bot
-    & SUDOERS
-)
 @app.on_message(filters.command("notes") & ~filters.private)
 @capture_err
 async def get_notes(_, message):
-    prefix = message.text.split()[0][0]
-    is_ubot = bool(prefix == USERBOT_PREFIX)
-    chat_id = USERBOT_ID if is_ubot else message.chat.id
+    chat_id = message.chat.id
 
     _notes = await get_note_names(chat_id)
 
     if not _notes:
         return await eor(message, text="**No notes in this chat.**")
     _notes.sort()
-    msg = f"List of notes in {'USERBOT' if is_ubot else message.chat.title}\n"
+    msg = f"List of notes in {message.chat.title}\n"
     for note in _notes:
         msg += f"**-** `{note}`\n"
     await eor(message, text=msg)
 
 
-@app2.on_message(
-    filters.command("get", prefixes=USERBOT_PREFIX)
-    & ~filters.forwarded
-    & ~filters.via_bot
-    & SUDOERS
-)
-async def get_one_note_userbot(_, message):
-    if len(message.text.split()) < 2:
-        return await eor(message, text="Invalid arguments")
-
-    name = message.text.split(None, 1)[1]
-
-    _note = await get_note(USERBOT_ID, name)
-    if not _note:
-        return await eor(message, text="No such note.")
-
-    type = _note["type"]
-    data = _note["data"]
-    file_id = _note.get("file_id")
-    keyb = None
-    await get_reply(message, type, file_id, data, keyb, protect)
 
 
 @app.on_message(filters.regex(r"^#.+") & filters.text & ~filters.private)
@@ -266,12 +236,6 @@ async def get_reply(message, type, file_id, data, keyb):
         )
 
 
-@app2.on_message(
-    filters.command("delete", prefixes=USERBOT_PREFIX)
-    & ~filters.forwarded
-    & ~filters.via_bot
-    & SUDOERS
-)
 @app.on_message(filters.command("delete") & ~filters.private)
 @adminsOnly("can_change_info")
 async def del_note(_, message):
@@ -281,9 +245,7 @@ async def del_note(_, message):
     if not name:
         return await eor(message, text="**Usage**\n__/delete [NOTE_NAME]__")
 
-    prefix = message.text.split()[0][0]
-    is_ubot = bool(prefix == USERBOT_PREFIX)
-    chat_id = USERBOT_ID if is_ubot else message.chat.id
+    chat_id = message.chat.id
 
     deleted = await delete_note(chat_id, name)
     if deleted:
