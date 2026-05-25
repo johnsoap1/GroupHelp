@@ -49,10 +49,33 @@ async def start_bot():
     # Load sudoers
     await load_sudoers()
 
+    # Register all handlers after app is initialized
+    from pyrogram.filters import command
+
     # Register markdownhelp handler
     from wbb.utils.constants import mkdwnhelp
-    from pyrogram.filters import command
     app.on_message(command("markdownhelp"))(mkdwnhelp)
+
+    # Register start handler
+    app.on_message(filters.command("start"))(start)
+
+    # Register help handler
+    app.on_message(filters.command("help"))(help_command)
+
+    # Register callback handlers
+    app.on_callback_query(filters.regex("bot_commands"))(commands_callbacc)
+    app.on_callback_query(filters.regex("stats_callback"))(stats_callbacc)
+    app.on_callback_query(filters.regex(r"help_(.*?)"))(help_button)
+
+    # Register inline module handlers
+    from wbb.modules.inline import inline, inline_query_handler
+    app.on_message(filters.command("inline"))(inline)
+    app.on_inline_query()(inline_query_handler)
+
+    # Register inlinefuncs handlers
+    from wbb.utils.inlinefuncs import test_speedtest_cq, cancel_task_button
+    app.on_callback_query(filters.regex("test_speedtest"))(test_speedtest_cq)
+    app.on_callback_query(filters.regex("^cancel_task_"))(cancel_task_button)
 
     # Import ALL_MODULES after app is initialized
     from wbb.modules import ALL_MODULES
@@ -201,7 +224,6 @@ FED_MARKUP = InlineKeyboardMarkup(
 )
 
 
-@app.on_message(filters.command("start"))
 async def start(_, message):
     if message.chat.type != ChatType.PRIVATE:
         return await message.reply(
@@ -275,7 +297,6 @@ async def start(_, message):
     return
 
 
-@app.on_message(filters.command("help"))
 async def help_command(_, message):
     if message.chat.type != ChatType.PRIVATE:
         if len(message.command) >= 2:
@@ -348,7 +369,6 @@ Also you can ask anything in Support Group.
     )
 
 
-@app.on_callback_query(filters.regex("bot_commands"))
 async def commands_callbacc(_, CallbackQuery):
     text, keyboard = await help_parser(CallbackQuery.from_user.mention)
     await app.send_message(
@@ -360,14 +380,12 @@ async def commands_callbacc(_, CallbackQuery):
     await CallbackQuery.message.delete()
 
 
-@app.on_callback_query(filters.regex("stats_callback"))
 async def stats_callbacc(_, CallbackQuery):
     from wbb.modules.sudoers import bot_sys_stats
     text = await bot_sys_stats()
     await app.answer_callback_query(CallbackQuery.id, text, show_alert=True)
 
 
-@app.on_callback_query(filters.regex(r"help_(.*?)"))
 async def help_button(client, query):
     home_match = re.match(r"help_home\((.+?)\)", query.data)
     mod_match = re.match(r"help_module\((.+?)\)", query.data)
