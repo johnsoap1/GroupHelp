@@ -1136,7 +1136,7 @@ async def cleanup():
 
 def _register_cleanup():
     try:
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         for sig in (signal.SIGINT, signal.SIGTERM):
             try:
                 loop.add_signal_handler(sig, _handle_sigint)
@@ -1144,8 +1144,6 @@ def _register_cleanup():
                 pass
         if loop.is_running():
             loop.create_task(cleanup())
-        else:
-            loop.run_until_complete(cleanup())
     except Exception:
         pass
 

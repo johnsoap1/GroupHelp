@@ -45,7 +45,7 @@ from pyrogram import errors
 from pyrogram.enums import MessageEntityType
 from pyrogram.types import Message
 
-from wbb import aiohttpsession as aiosession
+from wbb import get_aiohttp_session
 from wbb.utils.dbfunctions import start_restart_stage
 from wbb.utils.http import get, post
 
@@ -116,13 +116,15 @@ def test_speedtest():
 
 
 async def get_http_status_code(url: str) -> int:
-    async with aiosession.head(url) as resp:
+    session = await get_aiohttp_session()
+    async with session.head(url) as resp:
         return resp.status
 
 
 async def make_carbon(code):
+    session = await get_aiohttp_session()
     url = "https://carbonara.solopov.dev/api/cook"
-    async with aiosession.post(url, json={"code": code}) as resp:
+    async with session.post(url, json={"code": code}) as resp:
         image = BytesIO(await resp.read())
     image.name = "carbon.png"
     return image

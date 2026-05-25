@@ -23,10 +23,11 @@ SOFTWARE.
 """
 from asyncio import gather
 
-from wbb import aiohttpsession as session
+from wbb import get_aiohttp_session
 
 
 async def get(url: str, *args, **kwargs):
+    session = await get_aiohttp_session()
     async with session.get(url, *args, **kwargs) as resp:
         try:
             data = await resp.json()
@@ -36,6 +37,7 @@ async def get(url: str, *args, **kwargs):
 
 
 async def head(url: str, *args, **kwargs):
+    session = await get_aiohttp_session()
     async with session.head(url, *args, **kwargs) as resp:
         try:
             data = await resp.json()
@@ -45,6 +47,7 @@ async def head(url: str, *args, **kwargs):
 
 
 async def post(url: str, *args, **kwargs):
+    session = await get_aiohttp_session()
     async with session.post(url, *args, **kwargs) as resp:
         try:
             data = await resp.json()
@@ -66,8 +69,10 @@ async def multipost(url: str, times: int, *args, **kwargs):
 
 
 async def resp_get(url: str, *args, **kwargs):
+    session = await get_aiohttp_session()
     return await session.get(url, *args, **kwargs)
 
 
 async def resp_post(url: str, *args, **kwargs):
+    session = await get_aiohttp_session()
     return await session.post(url, *args, **kwargs)

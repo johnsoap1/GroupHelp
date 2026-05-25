@@ -31,24 +31,26 @@ from wbb import (
     load_sudoers,
 )
 from wbb.core.keyboard import ikb
-from wbb.modules import ALL_MODULES
-from wbb.modules.sudoers import bot_sys_stats
 from wbb.utils import paginate_modules
 from wbb.utils.constants import MARKDOWN
 from wbb.utils.dbfunctions import clean_restart_stage, get_rules
 from wbb.utils.functions import extract_text_and_keyb
 
 HELPABLE = {}
+ALL_MODULES = []
 
 
 async def start_bot():
-    global HELPABLE
+    global HELPABLE, ALL_MODULES
 
     # Initialize bot first (CRITICAL FIX)
     await init_bot()
 
     # Load sudoers
     await load_sudoers()
+
+    # Import ALL_MODULES after app is initialized
+    from wbb.modules import ALL_MODULES
 
     # Load modules with error handling
     for module in ALL_MODULES:
@@ -355,6 +357,7 @@ async def commands_callbacc(_, CallbackQuery):
 
 @app.on_callback_query(filters.regex("stats_callback"))
 async def stats_callbacc(_, CallbackQuery):
+    from wbb.modules.sudoers import bot_sys_stats
     text = await bot_sys_stats()
     await app.answer_callback_query(CallbackQuery.id, text, show_alert=True)
 

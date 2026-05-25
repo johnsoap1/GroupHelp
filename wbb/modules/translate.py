@@ -169,7 +169,7 @@ async def translate_command(client, message: Message):
 
     try:
         # Run translation in executor to avoid blocking
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         translated, service, error = await loop.run_in_executor(
             None, translate_text, text, target_lang, "auto"
         )

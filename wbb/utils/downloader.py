@@ -3,7 +3,7 @@ from time import time
 
 import aiofiles
 
-from wbb import aiohttpsession as session
+from wbb import get_aiohttp_session
 from wbb.core.tasks import add_task
 
 
@@ -19,6 +19,7 @@ async def download_url(
 ):
     file_path = file_path or url.split("/")[-1][:20]
 
+    session = await get_aiohttp_session()
     async with session.get(url) as response:
         ensure_status(response.status)
 
