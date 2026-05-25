@@ -334,6 +334,7 @@ async def speedtest_init(query):
 # CallbackQuery for the function above
 
 
+@app.on_callback_query(filters.regex("test_speedtest"))
 async def test_speedtest_cq(_, cq):
     if cq.from_user.id not in SUDOERS:
         return await cq.answer("This Isn't For You!")
@@ -482,6 +483,7 @@ async def task_inline_func(user_id):
     ]
 
 
+@app.on_callback_query(filters.regex("^cancel_task_"))
 async def cancel_task_button(_, query: CallbackQuery):
     user_id = query.from_user.id
 

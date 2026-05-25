@@ -15,6 +15,7 @@ Send /inline for help related to inline.
 """
 
 
+@app.on_message(filters.command("inline"))
 async def inline(_, message):
     buttons = InlineKeyboard(row_width=4)
     buttons.add(
@@ -27,6 +28,7 @@ async def inline(_, message):
     await message.reply_text(text=text, reply_markup=buttons)
 
 
+@app.on_inline_query()
 async def inline_query_handler(client, query):
     try:
         text = query.query.strip().lower()
