@@ -4,7 +4,7 @@ from pyrogram.enums import ChatType, ParseMode
 from pyrogram.filters import command
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
-from wbb import BOT_USERNAME, app
+from wbb import BOT_USERNAME
 
 MARKDOWN = """
 Read the below text carefully to find out how formatting works!
@@ -40,8 +40,9 @@ NOTE: Fillings only works in greetings module.
 """
 
 
-@app.on_message(command("markdownhelp"))
 async def mkdwnhelp(_, m: Message):
+    from wbb import BOT_USERNAME, app
+
     keyb = InlineKeyboardMarkup(
         [
             [

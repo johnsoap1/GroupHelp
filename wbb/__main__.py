@@ -49,6 +49,11 @@ async def start_bot():
     # Load sudoers
     await load_sudoers()
 
+    # Register markdownhelp handler
+    from wbb.utils.constants import mkdwnhelp
+    from pyrogram.filters import command
+    app.on_message(command("markdownhelp"))(mkdwnhelp)
+
     # Import ALL_MODULES after app is initialized
     from wbb.modules import ALL_MODULES
 
