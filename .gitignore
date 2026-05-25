@@ -158,3 +158,4 @@ permissions.json
 .vscode
 .idea
 *.env
+!sample_config.env

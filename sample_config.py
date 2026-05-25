@@ -19,3 +19,5 @@ LOG_MENTIONS = os.environ.get("LOG_MENTIONS", "True").lower() in ["true", "1"]
 RSS_DELAY = int(os.environ.get("RSS_DELAY", 300))
 PM_PERMIT = os.environ.get("PM_PERMIT", "True").lower() in ["true", "1"]
 DEEPL_API = os.environ.get("DEEPL_API")
+MUSIC_GROUP_ID = int(os.environ.get("MUSIC_GROUP_ID", "0")) or None
+MUSIC_CHANNEL_ID = int(os.environ.get("MUSIC_CHANNEL_ID", "0")) or None
