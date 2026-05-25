@@ -14,7 +14,7 @@ from pyrogram.types import (
     Message,
 )
 
-from wbb import BOT_ID, SUDOERS, app, log
+from wbb import BOT_ID, SUDOERS, app, LOGGER
 from wbb.core.decorators.errors import capture_err
 from wbb.core.keyboard import ikb
 from wbb.utils.dbfunctions import (
