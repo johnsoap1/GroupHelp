@@ -1,12 +1,23 @@
 import asyncio
 import importlib
 import re
+import sys
 from contextlib import suppress
 
 from pyrogram import filters, idle
 from pyrogram.enums import ChatType, ParseMode
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from uvloop import install
+
+# Python 3.12 compatibility
+if sys.version_info >= (3, 12):
+    asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
+
+# Safe uvloop installation
+try:
+    install()
+except Exception:
+    pass
 
 from wbb import (
     BOT_NAME,
@@ -16,6 +27,8 @@ from wbb import (
     LOGGER,
     get_aiohttp_session,
     close_aiohttp_session,
+    init_bot,
+    load_sudoers,
 )
 from wbb.core.keyboard import ikb
 from wbb.modules import ALL_MODULES
@@ -31,20 +44,32 @@ HELPABLE = {}
 async def start_bot():
     global HELPABLE
 
+    # Initialize bot first (CRITICAL FIX)
+    await init_bot()
+
+    # Load sudoers
+    await load_sudoers()
+
+    # Load modules with error handling
     for module in ALL_MODULES:
-        imported_module = importlib.import_module("wbb.modules." + module)
-        if (
-            hasattr(imported_module, "__MODULE__")
-            and imported_module.__MODULE__
-        ):
-            imported_module.__MODULE__ = imported_module.__MODULE__
+        try:
+            imported_module = importlib.import_module("wbb.modules." + module)
             if (
-                hasattr(imported_module, "__HELP__")
-                and imported_module.__HELP__
+                hasattr(imported_module, "__MODULE__")
+                and imported_module.__MODULE__
             ):
-                HELPABLE[
-                    imported_module.__MODULE__.replace(" ", "_").lower()
-                ] = imported_module
+                imported_module.__MODULE__ = imported_module.__MODULE__
+                if (
+                    hasattr(imported_module, "__HELP__")
+                    and imported_module.__HELP__
+                ):
+                    HELPABLE[
+                        imported_module.__MODULE__.replace(" ", "_").lower()
+                    ] = imported_module
+        except Exception as e:
+            LOGGER.error(f"Failed loading module {module}: {e}")
+            continue
+
     bot_modules = ""
     j = 1
     for i in ALL_MODULES:
@@ -77,7 +102,10 @@ async def start_bot():
     except Exception:
         pass
 
-    await idle()
+    try:
+        await idle()
+    except KeyboardInterrupt:
+        pass
 
     await close_aiohttp_session()
     LOGGER.info("Stopping clients")
@@ -206,9 +234,12 @@ async def start(_, message):
             )
         elif "_" in name:
             module = name.split("_", 1)[1]
+            mod = HELPABLE.get(module)
+            if not mod:
+                return await message.reply("Module not found.")
             text = (
-                f"Here is the help for **{HELPABLE[module].__MODULE__}**:\n"
-                + HELPABLE[module].__HELP__
+                f"Here is the help for **{mod.__MODULE__}**:\n"
+                + mod.__HELP__
             )
             if module == "federation":
                 return await message.reply(
@@ -268,10 +299,11 @@ async def help_command(_, message):
     else:
         if len(message.command) >= 2:
             name = (message.text.split(None, 1)[1]).replace(" ", "_").lower()
-            if str(name) in HELPABLE:
+            mod = HELPABLE.get(name)
+            if mod:
                 text = (
-                    f"Here is the help for **{HELPABLE[name].__MODULE__}**:\n"
-                    + HELPABLE[name].__HELP__
+                    f"Here is the help for **{mod.__MODULE__}**:\n"
+                    + mod.__HELP__
                 )
                 await message.reply(text, disable_web_page_preview=True)
             else:
@@ -347,11 +379,14 @@ General command are:
  """
     if mod_match:
         module = (mod_match.group(1)).replace(" ", "_")
+        mod = HELPABLE.get(module)
+        if not mod:
+            return await query.answer("Module not found.")
         text = (
             "{} **{}**:\n".format(
-                "Here is the help for", HELPABLE[module].__MODULE__
+                "Here is the help for", mod.__MODULE__
             )
-            + HELPABLE[module].__HELP__
+            + mod.__HELP__
         )
         if module == "federation":
             return await query.message.edit(
@@ -415,10 +450,9 @@ General command are:
 
 async def main():
     """Modern async main function for Python 3.12 compatibility."""
-    install()
     with suppress(asyncio.exceptions.CancelledError):
         await start_bot()
-    await asyncio.sleep(3.0)  # task cancel wait
+    await asyncio.sleep(1)
 
 
 if __name__ == "__main__":
