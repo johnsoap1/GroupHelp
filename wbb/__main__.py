@@ -1,7 +1,7 @@
 import asyncio
 import importlib
 import re
-from contextlib import closing, suppress
+from contextlib import suppress
 
 from pyrogram import filters, idle
 from pyrogram.enums import ChatType, ParseMode
@@ -12,9 +12,10 @@ from wbb import (
     BOT_NAME,
     BOT_USERNAME,
     LOG_GROUP_ID,
-    aiohttpsession,
     app,
-    log,
+    LOGGER,
+    get_aiohttp_session,
+    close_aiohttp_session,
 )
 from wbb.core.keyboard import ikb
 from wbb.modules import ALL_MODULES
@@ -23,8 +24,6 @@ from wbb.utils import paginate_modules
 from wbb.utils.constants import MARKDOWN
 from wbb.utils.dbfunctions import clean_restart_stage, get_rules
 from wbb.utils.functions import extract_text_and_keyb
-
-loop = asyncio.get_event_loop()
 
 HELPABLE = {}
 
@@ -60,12 +59,12 @@ async def start_bot():
     print("+===============+===============+===============+===============+")
     print(bot_modules)
     print("+===============+===============+===============+===============+")
-    log.info(f"BOT STARTED AS {BOT_NAME}!")
+    LOGGER.info(f"BOT STARTED AS {BOT_NAME}!")
 
     restart_data = await clean_restart_stage()
 
     try:
-        log.info("Sending online status")
+        LOGGER.info("Sending online status")
         if restart_data:
             await app.edit_message_text(
                 restart_data["chat_id"],
@@ -80,13 +79,13 @@ async def start_bot():
 
     await idle()
 
-    await aiohttpsession.close()
-    log.info("Stopping clients")
+    await close_aiohttp_session()
+    LOGGER.info("Stopping clients")
     await app.stop()
-    log.info("Cancelling asyncio tasks")
+    LOGGER.info("Cancelling asyncio tasks")
     for task in asyncio.all_tasks():
         task.cancel()
-    log.info("Dead!")
+    LOGGER.info("Dead!")
 
 
 home_keyboard_pm = InlineKeyboardMarkup(
@@ -414,9 +413,13 @@ General command are:
     return await client.answer_callback_query(query.id)
 
 
-if __name__ == "__main__":
+async def main():
+    """Modern async main function for Python 3.12 compatibility."""
     install()
-    with closing(loop):
-        with suppress(asyncio.exceptions.CancelledError):
-            loop.run_until_complete(start_bot())
-        loop.run_until_complete(asyncio.sleep(3.0))  # task cancel wait
+    with suppress(asyncio.exceptions.CancelledError):
+        await start_bot()
+    await asyncio.sleep(3.0)  # task cancel wait
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
