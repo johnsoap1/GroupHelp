@@ -71,14 +71,9 @@ mongo_client = MongoClient(MONGO_URL)
 db = mongo_client.wbb
 
 # =========================
-# Bot client (async-safe)
+# Bot client (created in init_bot to avoid event loop issues)
 # =========================
-app = Client(
-    "sessions/wbb",
-    bot_token=BOT_TOKEN,
-    api_id=API_ID,
-    api_hash=API_HASH,
-)
+app = None
 
 # =========================
 # Globals (set after startup)
@@ -123,7 +118,15 @@ async def load_sudoers():
 # Bot initialization (IMPORTANT FIX)
 # =========================
 async def init_bot():
-    global BOT_ID, BOT_NAME, BOT_USERNAME, BOT_MENTION, BOT_DC_ID
+    global app, BOT_ID, BOT_NAME, BOT_USERNAME, BOT_MENTION, BOT_DC_ID
+
+    LOGGER.info("Creating bot client...")
+    app = Client(
+        "sessions/wbb",
+        bot_token=BOT_TOKEN,
+        api_id=API_ID,
+        api_hash=API_HASH,
+    )
 
     LOGGER.info("Starting bot client...")
     await app.start()
