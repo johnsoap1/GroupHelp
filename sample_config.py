@@ -18,3 +18,4 @@ MONGO_URL = os.environ.get("MONGO_URL")
 LOG_MENTIONS = os.environ.get("LOG_MENTIONS", "True").lower() in ["true", "1"]
 RSS_DELAY = int(os.environ.get("RSS_DELAY", 300))
 PM_PERMIT = os.environ.get("PM_PERMIT", "True").lower() in ["true", "1"]
+DEEPL_API = os.environ.get("DEEPL_API")
