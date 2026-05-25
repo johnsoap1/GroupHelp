@@ -61,7 +61,7 @@ bot_start_time = time.time()
 # SUDOERS (FIXED)
 # =========================
 SUDOERS = set(SUDO_USERS_ID)
-SUDOERS_SET = SUDOERS.copy()
+SUDOERS_SET = SUDOERS
 
 # =========================
 # MongoDB
@@ -83,11 +83,7 @@ BOT_NAME = None
 BOT_USERNAME = None
 BOT_MENTION = None
 BOT_DC_ID = None
-
-# =========================
-# Telegraph
-# =========================
-telegraph = Telegraph(domain="graph.org")
+telegraph = None
 
 # =========================
 # Sudo loader (kept compatible)
@@ -118,7 +114,7 @@ async def load_sudoers():
 # Bot initialization (IMPORTANT FIX)
 # =========================
 async def init_bot():
-    global app, BOT_ID, BOT_NAME, BOT_USERNAME, BOT_MENTION, BOT_DC_ID
+    global app, BOT_ID, BOT_NAME, BOT_USERNAME, BOT_MENTION, BOT_DC_ID, telegraph
 
     LOGGER.info("Creating bot client...")
     app = Client(
@@ -141,6 +137,7 @@ async def init_bot():
     BOT_DC_ID = me.dc_id
 
     LOGGER.info("Initializing Telegraph...")
+    telegraph = Telegraph(domain="graph.org")
     telegraph.create_account(short_name=BOT_USERNAME or "WBB")
 
     LOGGER.info("Bot initialized successfully")
@@ -177,8 +174,8 @@ __all__ = [
     "BOT_USERNAME",
     "BOT_MENTION",
     "BOT_DC_ID",
-    "telegraph",
     "eor",
     "init_bot",
     "load_sudoers",
+    "telegraph",
 ]
