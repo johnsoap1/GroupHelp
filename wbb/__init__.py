@@ -11,62 +11,102 @@ from pyrogram import Client, filters
 from pyrogram.types import Message
 from telegraph import Telegraph
 
-# Configure logging
+# =========================
+# Logging
+# =========================
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
-LOGGER = logging.getLogger(__name__)
+LOGGER = logging.getLogger("WBB")
 
-# Lazy-initialized aiohttp session for Python 3.12 compatibility
+# =========================
+# Lazy aiohttp session (Py3.12 safe)
+# =========================
 aiohttpsession = None
 
+
 async def get_aiohttp_session():
-    """Get or create aiohttp session (lazy initialization)."""
     global aiohttpsession
     if aiohttpsession is None or aiohttpsession.closed:
         aiohttpsession = ClientSession()
     return aiohttpsession
 
+
 async def close_aiohttp_session():
-    """Close aiohttp session gracefully."""
     global aiohttpsession
     if aiohttpsession and not aiohttpsession.closed:
         await aiohttpsession.close()
 
-is_config = path.exists("config.py")
 
-if is_config:
+# =========================
+# Config loader
+# =========================
+if path.exists("config.py"):
     from config import *
 else:
     from sample_config import *
 
 Path("sessions").mkdir(exist_ok=True)
 
-GBAN_LOG_GROUP_ID = GBAN_LOG_GROUP_ID
-WELCOME_DELAY_KICK_SEC = WELCOME_DELAY_KICK_SEC
-LOG_GROUP_ID = LOG_GROUP_ID
-MESSAGE_DUMP_CHAT = MESSAGE_DUMP_CHAT
+# =========================
+# Core constants
+# =========================
 MOD_LOAD = []
 MOD_NOLOAD = []
-SUDOERS = filters.user()
+
 bot_start_time = time.time()
 
+# =========================
+# SUDOERS (FIXED)
+# =========================
+SUDOERS = set(SUDO_USERS_ID)
+SUDOERS_SET = SUDOERS.copy()
 
-# MongoDB client
+# =========================
+# MongoDB
+# =========================
 LOGGER.info("Initializing MongoDB client")
 mongo_client = MongoClient(MONGO_URL)
 db = mongo_client.wbb
 
+# =========================
+# Bot client (async-safe)
+# =========================
+app = Client(
+    "sessions/wbb",
+    bot_token=BOT_TOKEN,
+    api_id=API_ID,
+    api_hash=API_HASH,
+)
 
+# =========================
+# Globals (set after startup)
+# =========================
+BOT_ID = None
+BOT_NAME = None
+BOT_USERNAME = None
+BOT_MENTION = None
+BOT_DC_ID = None
+
+# =========================
+# Telegraph
+# =========================
+telegraph = Telegraph(domain="graph.org")
+
+# =========================
+# Sudo loader (kept compatible)
+# =========================
 async def load_sudoers():
-    global SUDOERS
     LOGGER.info("Loading sudoers")
     sudoersdb = db.sudoers
+
     sudoers = await sudoersdb.find_one({"sudo": "sudo"})
-    sudoers = [] if not sudoers else sudoers["sudoers"]
+    sudoers = [] if not sudoers else sudoers.get("sudoers", [])
+
     for user_id in SUDO_USERS_ID:
         SUDOERS.add(user_id)
+
         if user_id not in sudoers:
             sudoers.append(user_id)
             await sudoersdb.update_one(
@@ -74,48 +114,68 @@ async def load_sudoers():
                 {"$set": {"sudoers": sudoers}},
                 upsert=True,
             )
-    if sudoers:
-        for user_id in sudoers:
-            SUDOERS.add(user_id)
+
+    for user_id in sudoers:
+        SUDOERS.add(user_id)
 
 
-# Userbot client removed - bot only mode
-# app2 is no longer initialized
+# =========================
+# Bot initialization (IMPORTANT FIX)
+# =========================
+async def init_bot():
+    global BOT_ID, BOT_NAME, BOT_USERNAME, BOT_MENTION, BOT_DC_ID
 
-app = Client("sessions/wbb", bot_token=BOT_TOKEN, api_id=API_ID, api_hash=API_HASH)
+    LOGGER.info("Starting bot client...")
+    await app.start()
 
-LOGGER.info("Starting bot client")
-app.start()
+    LOGGER.info("Fetching bot info...")
+    me = await app.get_me()
 
-LOGGER.info("Gathering profile info")
-x = app.get_me()
+    BOT_ID = me.id
+    BOT_NAME = me.first_name + (me.last_name or "")
+    BOT_USERNAME = me.username
+    BOT_MENTION = me.mention
+    BOT_DC_ID = me.dc_id
 
-BOT_ID = x.id
-BOT_NAME = x.first_name + (x.last_name or "")
-BOT_USERNAME = x.username
-BOT_MENTION = x.mention
-BOT_DC_ID = x.dc_id
+    LOGGER.info("Initializing Telegraph...")
+    telegraph.create_account(short_name=BOT_USERNAME or "WBB")
 
-# Userbot variables removed - bot only mode
-USERBOT_ID = BOT_ID
-USERBOT_NAME = BOT_NAME
-USERBOT_USERNAME = BOT_USERNAME
-USERBOT_MENTION = BOT_MENTION
-USERBOT_DC_ID = BOT_DC_ID
-
-LOGGER.info("Initializing Telegraph client")
-telegraph = Telegraph(domain="graph.org")
-telegraph.create_account(short_name=BOT_USERNAME)
-
-# Export LOGGER for use in other modules
-__all__ = ["LOGGER"]
+    LOGGER.info("Bot initialized successfully")
 
 
+# =========================
+# Safe eor helper
+# =========================
 async def eor(msg: Message, **kwargs):
     func = (
-        (msg.edit_text if msg.from_user.is_self else msg.reply)
-        if msg.from_user
+        msg.edit_text
+        if msg.from_user and msg.from_user.is_self
         else msg.reply
     )
+
     spec = getfullargspec(func.__wrapped__).args
     return await func(**{k: v for k, v in kwargs.items() if k in spec})
+
+
+# =========================
+# Export for modules
+# =========================
+__all__ = [
+    "LOGGER",
+    "app",
+    "db",
+    "SUDOERS",
+    "SUDOERS_SET",
+    "aiohttpsession",
+    "get_aiohttp_session",
+    "close_aiohttp_session",
+    "BOT_ID",
+    "BOT_NAME",
+    "BOT_USERNAME",
+    "BOT_MENTION",
+    "BOT_DC_ID",
+    "telegraph",
+    "eor",
+    "init_bot",
+    "load_sudoers",
+]
