@@ -23,7 +23,6 @@ from wbb import (
     BOT_NAME,
     BOT_USERNAME,
     LOG_GROUP_ID,
-    app,
     LOGGER,
     get_aiohttp_session,
     close_aiohttp_session,
@@ -42,6 +41,9 @@ async def start_bot():
 
     # Initialize bot first (CRITICAL FIX)
     await init_bot()
+
+    # Import app after it's initialized
+    from wbb import app
 
     # Load sudoers
     await load_sudoers()
