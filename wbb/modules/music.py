@@ -103,8 +103,8 @@ def capture_err(func):
 # ==================== CONFIGURATION ====================
 
 # Storage configuration
-MUSIC_GROUP_ID = int(os.getenv("MUSIC_GROUP_ID", "0")) or None
-MUSIC_CHANNEL_ID = int(os.getenv("MUSIC_CHANNEL_ID", "0")) or None
+MUSIC_GROUP_ID = int(os.getenv("MUSIC_GROUP_ID") or "0") or None
+MUSIC_CHANNEL_ID = int(os.getenv("MUSIC_CHANNEL_ID") or "0") or None
 
 # Limits
 MAX_DURATION = 3600          # 1 hour

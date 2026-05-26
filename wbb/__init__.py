@@ -60,8 +60,8 @@ bot_start_time = time.time()
 # =========================
 # SUDOERS (FIXED)
 # =========================
-SUDOERS = set(SUDO_USERS_ID)
-SUDOERS_SET = SUDOERS
+SUDOERS = list(SUDO_USERS_ID)
+SUDOERS_SET = set(SUDOERS)
 
 # =========================
 # MongoDB
