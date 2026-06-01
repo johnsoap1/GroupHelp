@@ -60,8 +60,8 @@ bot_start_time = time.time()
 # =========================
 # SUDOERS (FIXED)
 # =========================
-SUDOERS = list(SUDO_USERS_ID)
-SUDOERS_SET = set(SUDOERS)
+SUDOERS = set(SUDO_USERS_ID)
+SUDOERS_SET = SUDOERS
 
 # =========================
 # MongoDB
@@ -96,8 +96,7 @@ async def load_sudoers():
     sudoers = [] if not sudoers else sudoers.get("sudoers", [])
 
     for user_id in SUDO_USERS_ID:
-        if user_id not in SUDOERS:
-            SUDOERS.append(user_id)
+        SUDOERS.add(user_id)
 
         if user_id not in sudoers:
             sudoers.append(user_id)
@@ -108,8 +107,7 @@ async def load_sudoers():
             )
 
     for user_id in sudoers:
-        if user_id not in SUDOERS:
-            SUDOERS.append(user_id)
+        SUDOERS.add(user_id)
 
 
 # =========================

@@ -731,38 +731,39 @@ async def upload_to_storage(file_path: str, title: str, performer: str,
 
 # ==================== STORAGE CHANNEL INDEXER ====================
 
-@app.on_message(filters.chat(MUSIC_CHANNEL_ID) & filters.audio)
-async def storage_audio_indexer(_, m: Message):
-    """Auto-index any audio dropped into the configured storage channel.
+if MUSIC_CHANNEL_ID:
+    @app.on_message(filters.chat(MUSIC_CHANNEL_ID) & filters.audio)
+    async def storage_audio_indexer(_, m: Message):
+        """Auto-index any audio dropped into the configured storage channel.
 
-    Seeds incoming audio into the Mongo cache so future `/song` requests
-    can be served instantly.
-    """
-    try:
-        audio = m.audio
-        title = audio.title or "Unknown"
-        performer = audio.performer or "Unknown"
-        file_unique_id = getattr(audio, "file_unique_id", None)
-        thumb_file_id = audio.thumbs[0].file_id if audio.thumbs else None
+        Seeds incoming audio into the Mongo cache so future `/song` requests
+        can be served instantly.
+        """
+        try:
+            audio = m.audio
+            title = audio.title or "Unknown"
+            performer = audio.performer or "Unknown"
+            file_unique_id = getattr(audio, "file_unique_id", None)
+            thumb_file_id = audio.thumbs[0].file_id if audio.thumbs else None
 
-        query_variants = [f"{performer} {title}", title]
+            query_variants = [f"{performer} {title}", title]
 
-        for query in query_variants:
-            await save_cached_song(
-                query=query,
-                title=title,
-                performer=performer,
-                duration=audio.duration or 0,
-                file_id=audio.file_id,
-                thumb_file_id=thumb_file_id,
-                storage_msg_id=m.id,
-                file_unique_id=file_unique_id,
-                source="manual_seeded",
-            )
+            for query in query_variants:
+                await save_cached_song(
+                    query=query,
+                    title=title,
+                    performer=performer,
+                    duration=audio.duration or 0,
+                    file_id=audio.file_id,
+                    thumb_file_id=thumb_file_id,
+                    storage_msg_id=m.id,
+                    file_unique_id=file_unique_id,
+                    source="manual_seeded",
+                )
 
-        print(f"[INDEXED] {performer} - {title}")
-    except Exception as e:
-        print(f"[INDEXER ERROR] {e}")
+            print(f"[INDEXED] {performer} - {title}")
+        except Exception as e:
+            print(f"[INDEXER ERROR] {e}")
 
 # ==================== COMMAND HANDLERS ====================
 
