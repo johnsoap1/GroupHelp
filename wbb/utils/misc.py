@@ -82,8 +82,8 @@ def paginate_modules(page_n, module_dict, prefix, chat=None):
 
     COLUMN_SIZE = 4
 
-    max_num_pages = ceil(len(pairs) / COLUMN_SIZE)
-    modulo_page = page_n % max_num_pages
+    max_num_pages = ceil(len(pairs) / COLUMN_SIZE) if pairs else 1
+    modulo_page = page_n % max_num_pages if max_num_pages > 0 else 0
 
     # can only have a certain amount of buttons side by side
     if len(pairs) > COLUMN_SIZE:
